@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<solr persistent="false">
+	<cores adminPath="/admin/cores" defaultCoreName="flow">
+		<core name="flow" instanceDir="/etc/solr/flow" schema="german/schema.xml" dataDir="data/flow" />
+	</cores>
+</solr>

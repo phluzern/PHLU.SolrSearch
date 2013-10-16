@@ -1,0 +1,131 @@
+{namespace phlu=PHLU\SolrSearch\ViewHelpers}
+
+<f:layout name="Default" />
+
+<f:section name="Title">Dateisuche</f:section>
+<f:section name="Content">
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<style type="text/css">
+		body { font-family: Calibri, Arial, sans-serif; font-size: 14px; }
+		#searchResults ul { list-style-type: none; margin: 0; padding: 0; }
+		#searchResults ul li { margin: 0 0 20px 0; }
+
+		.searchResults-info { margin-bottom: 20px; }
+
+		.pathSeparator { display: inline-block; margin: 0 5px; }
+
+		.searchResult-title { font-weight: bold;}
+		.searchResult-highlighted { color: red; font-weight: bold;}
+		.searchFilters-hidden { display: none; }
+
+		p { margin: 0 0 2px 0; }
+		p.searchResult-title { margin-bottom: 5px; }
+		p.searchResult-content { margin-bottom: 5px; }
+		p.searchResult-lastChanged { color: #979797; }
+
+		.icon {
+			display: inline-block;
+			float: left;
+			height: 16px;
+			width: 16px;
+			background-repeat: no-repeat;
+			background-image: url({f:uri.resource(path:'icons/unknown.png', package: 'PHLU.Portal')});
+			margin-right: 5px;
+		}
+		.icon-pdf {
+			background-image: url({f:uri.resource(path:'icons/pdf.png', package: 'PHLU.Portal')});
+		}
+		.icon-doc, .icon-docm, .icon-docx, .icon-rtf, .icon-odt, .icon-dotx, .icon-dot, .icon-dotm, .icon-txt {
+			background-image: url({f:uri.resource(path:'icons/document.png', package: 'PHLU.Portal')});
+		}
+		.icon-xls, .icon-xlsx, .icon-xltx, .icon-xlt, .icon-xltm {
+			background-image: url({f:uri.resource(path:'icons/spreadsheet.png', package: 'PHLU.Portal')});
+		}
+		.icon-ppt, .icon-pptx, .icon-pptm, .icon-pps, .icon-ppsx, .icon-potx, .icon-potm {
+			background-image: url({f:uri.resource(path:'icons/powerpoint.png', package: 'PHLU.Portal')});
+		}
+		.icon-jpg, .icon-jpeg, .icon-bmp, .icon-png, .icon-tiff, .icon-tif, .icon-gif, .icon-eps {
+			background-image: url({f:uri.resource(path:'icons/jpeg.png', package: 'PHLU.Portal')});
+		}
+		.icon-mp3, .icon-m4a, .icon-wma, .icon-f4a, .icon-wav, .icon-oga {
+			background-image: url({f:uri.resource(path:'icons/mp3.png', package: 'PHLU.Portal')});
+		}
+		.icon-mov, .icon-avi, .icon-mpeg, .icon-mpg, .icon-mp4, .icon-m4v, .icon-flv, .icon-f4v, .icon-webm, .icon-wmv, .icon-ogv, .icon-3gp{
+			background-image: url({f:uri.resource(path:'icons/video.png', package: 'PHLU.Portal')});
+		}
+		.icon-htm, .icon-html {
+			background-image: url({f:uri.resource(path:'icons/markup.png', package: 'PHLU.Portal')});
+		}
+		.icon-zip {
+			background-image: url({f:uri.resource(path:'icons/archive.png', package: 'PHLU.Portal')});
+		}
+
+
+	</style>
+	<script>
+		$(function() {
+			$('#openFilters').click(function() {
+				$('#searchFilters').slideToggle();
+			});
+		});
+	</script>
+	<f:comment><div style="height: 300px;">TTT</div></f:comment>
+	<h2>Suchen</h2>
+	<f:form action="index">
+		<f:form.textfield value="{requestArguments.query}" name="query" />
+		<f:form.submit value="suchen" />
+		Sortieren nach: <select name="sorting">
+			<option {f:if(condition: '{0:requestArguments.sorting} == {0:\'score\'}', then: 'selected', else: '')} value="score">Relevanz</option>
+			<option {f:if(condition: '{0:requestArguments.sorting} == {0:\'changed\'}', then: 'selected', else: '')} value="changed">Datum</option>
+		</select>
+		<br />
+
+
+		<button type="button" id="openFilters">Suche eingrenzen</button>
+		<div id="searchFilters" class="{searchFiltersClass}">
+			<fieldset id="documentType">
+				<legend>Dokumententyp</legend>
+				<f:for each="{documentTypes}" as="documentType" key="key">
+					<label for="documentType-{key}"><f:form.checkbox id="documentType-{key}" name="documentType[]" value="{key}" checked="{phlu:contains(haystack: requestArguments.documentType, needle: key, then: 'checked', else: '')}" /> {documentType.speakingName}</label>
+				</f:for>
+			</fieldset>
+			<fieldset id="filter-resourceCollection">
+				<legend>Sammlung</legend>
+				<f:for each="{filebrowsers}" as="filebrowser" iteration="iterator">
+					<label for="filter-resourceCollection-{iterator.cycle}"><f:form.checkbox id="filter-resourceCollection-{iterator.cycle}" name="filter[resourceCollection][]" value="{filebrowser.id}" checked="{phlu:contains(haystack: requestArguments.filter.resourceCollection, needle: filebrowser.id, then: 'checked', else: '')}" /> {filebrowser.name}</label>
+				</f:for>
+			</fieldset>
+		</div>
+
+	</f:form>
+	<h2>Suchresultate</h2>
+	<div id="searchResults">
+	<f:if condition="{solrDocs}">
+		<f:then>
+			<p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten.</p>
+			<ul>
+			<f:for each="{solrDocs}" as="solrDoc">
+				<li data-score="{solrDoc.score}">
+					<div class="icon icon-{solrDoc.fileExtension}"></div>
+					<p class="searchResult-title"><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>
+					<p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
+					<p class="searchResult-lastChanged">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
+					<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+				</li>
+			</f:for>
+			</ul>
+		</f:then>
+		<f:else>
+			<p>Nix gefunden.</p>
+		</f:else>
+	</f:if>
+	</div>
+	<div id="searchResultsPager">
+		<f:if condition="{offset} != 0">
+			<f:link.action action="index" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, previousPage:offset}">« zurück</f:link.action>
+		</f:if>
+		<f:if condition="{calculatedMaximumItem} <= {numberOfDocuments}">
+			<f:link.action action="index" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, nextPage:offset}">weiter »</f:link.action>
+		</f:if>
+	</div>
+</f:section>
