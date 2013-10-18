@@ -109,7 +109,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 				}
 			}
 
-			/* documentType filter */
+			// documentType filter
 			if (is_array($requestArguments['documentType']) && !empty($requestArguments['documentType'])) {
 				$filterValues = array();
 				foreach ($requestArguments['documentType'] as $documentType) {
@@ -120,6 +120,15 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 				}
 				$filterValues = implode(' OR ', $filterValues);
 				$query->addFilterQuery('fileExtension:(' . $filterValues . ')');
+			}
+
+			// only query files that the user has access to
+			$filebrowserUuids = array();
+			foreach ($filebrowsers as $filebrowser) {
+				$filebrowserUuids[] = $filebrowser->getId();
+			}
+			if (is_array($filebrowserUuids)) {
+				$query->addFilterQuery('resourceCollection:(' . implode(' OR ', $filebrowserUuids) . ')');
 			}
 
 			// normal fields
@@ -159,6 +168,8 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 					$query->addSortField($sortingField, \SolrQuery::ORDER_DESC);
 				}
 			}
+
+			// perform query
 			$queryResponse = $this->solrClient->query($query);
 			$response = $queryResponse->getResponse();
 			$this->view->assign('solrDocs', $response->response->docs);
