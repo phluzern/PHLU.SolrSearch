@@ -1,0 +1,17 @@
+<f:render section="Content" />
+<script>
+	$(function() {
+		$('.searchResultsNavigate').bind('click', function(event) {
+			event.preventDefault();
+			var link = $(this);
+			$.ajax({
+				type: 'POST',
+				url: link.attr('href'),
+				data: link.serialize(),
+				success: function(data) {
+					$('#searchResults').html(data);
+				}
+			});
+		});
+	});
+</script>

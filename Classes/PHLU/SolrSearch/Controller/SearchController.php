@@ -40,12 +40,30 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 		$this->view->assign('documentTypes', $this->settings['documentTypes']);
 
 		$requestArguments = $this->request->getArguments();
-		// \TYPO3\Flow\var_dump($requestArguments, 'requestArguments');
 		if (!empty($requestArguments)) {
-			$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
-
 			// if the filter tab is opened
 			$displayFilters = FALSE;
+
+			$this->view->assign('requestArguments', $requestArguments);
+			$this->view->assign('searchFiltersClass', $displayFilters ? 'searchFilters' : 'searchFilters-hidden');
+		}
+
+	}
+		/**
+	 * @return void
+	 */
+	public function resultsAction() {
+
+		// get all file browsers the current user has permissions to use
+		$filebrowsers = $this->filebrowserRepository->get_filebrowsers();
+		$this->view->assign('filebrowsers', $filebrowsers);
+
+		// get all media types
+		$this->view->assign('documentTypes', $this->settings['documentTypes']);
+
+		$requestArguments = $this->request->getArguments();
+		if (!empty($requestArguments)) {
+			$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
 
 			// generate query and set general settings
 			$query = new \SolrQuery();
@@ -87,7 +105,6 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 							}
 						}
 						$query->addFilterQuery($key . ':(' . $filterValues . ')');
-						$displayFilters = TRUE;
 					}
 				}
 			}
@@ -103,7 +120,6 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 				}
 				$filterValues = implode(' OR ', $filterValues);
 				$query->addFilterQuery('fileExtension:(' . $filterValues . ')');
-				$displayFilters = TRUE;
 			}
 
 			// normal fields
@@ -152,10 +168,11 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 			$lastDocument = $lastCalculatedDocument <= $response->response->numFound ? $lastCalculatedDocument : $response->response->numFound;
 			$this->view->assign('lastDocumentIndex', $lastDocument);
 			$this->view->assign('requestArguments', $requestArguments);
-			$this->view->assign('searchFiltersClass', $displayFilters ? 'searchFilters' : 'searchFilters-hidden');
 		}
 
 	}
+
+
 
 	/**
 	 * Escape a term

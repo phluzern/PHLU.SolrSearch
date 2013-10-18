@@ -1,0 +1,35 @@
+{namespace phlu=PHLU\SolrSearch\ViewHelpers}
+
+<f:layout name="AjaxResponse" />
+<f:section name="Content">
+	<h2>Suchresultate</h2>
+	<div id="searchResults">
+	<f:if condition="{solrDocs}">
+		<f:then>
+			<p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten.</p>
+			<ul>
+			<f:for each="{solrDocs}" as="solrDoc">
+				<li data-score="{solrDoc.score}">
+					<div class="icon icon-{solrDoc.fileExtension}"></div>
+					<p class="searchResult-title"><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>
+					<p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
+					<p class="searchResult-lastChanged">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
+					<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+				</li>
+			</f:for>
+			</ul>
+		</f:then>
+		<f:else>
+			<p>Nix gefunden.</p>
+		</f:else>
+	</f:if>
+	</div>
+	<div id="searchResultsPager">
+		<f:if condition="{offset} != 0">
+			<f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, previousPage:offset}">« zurück</f:link.action>
+		</f:if>
+		<f:if condition="{calculatedMaximumItem} <= {numberOfDocuments}">
+			<f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, nextPage:offset}">weiter »</f:link.action>
+		</f:if>
+	</div>
+</f:section>

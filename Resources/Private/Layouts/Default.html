@@ -4,6 +4,64 @@
 		<meta charset="utf-8">
 		<title><f:render section="Title" /></title>
 		<f:base />
+		<style type="text/css">
+			body { font-family: Calibri, Arial, sans-serif; font-size: 14px; }
+			#searchResults ul { list-style-type: none; margin: 0; padding: 0; }
+			#searchResults ul li { margin: 0 0 20px 0; }
+
+			.searchResults-info { margin-bottom: 20px; }
+
+			.pathSeparator { display: inline-block; margin: 0 5px; }
+
+			.searchResult-title { font-weight: bold;}
+			.searchResult-highlighted { color: red; font-weight: bold;}
+			.searchFilters-hidden { display: none; }
+
+			p { margin: 0 0 2px 0; }
+			p.searchResult-title { margin-bottom: 5px; }
+			p.searchResult-content { margin-bottom: 5px; }
+			p.searchResult-lastChanged { color: #979797; }
+
+			.icon {
+				display: inline-block;
+				float: left;
+				height: 16px;
+				width: 16px;
+				background-repeat: no-repeat;
+				background-image: url({f:uri.resource(path:'icons/unknown.png', package: 'PHLU.Portal')});
+			margin-right: 5px;
+				}
+			.icon-pdf {
+				background-image: url({f:uri.resource(path:'icons/pdf.png', package: 'PHLU.Portal')});
+				}
+			.icon-doc, .icon-docm, .icon-docx, .icon-rtf, .icon-odt, .icon-dotx, .icon-dot, .icon-dotm, .icon-txt {
+				background-image: url({f:uri.resource(path:'icons/document.png', package: 'PHLU.Portal')});
+				}
+			.icon-xls, .icon-xlsx, .icon-xltx, .icon-xlt, .icon-xltm {
+				background-image: url({f:uri.resource(path:'icons/spreadsheet.png', package: 'PHLU.Portal')});
+				}
+			.icon-ppt, .icon-pptx, .icon-pptm, .icon-pps, .icon-ppsx, .icon-potx, .icon-potm {
+				background-image: url({f:uri.resource(path:'icons/powerpoint.png', package: 'PHLU.Portal')});
+				}
+			.icon-jpg, .icon-jpeg, .icon-bmp, .icon-png, .icon-tiff, .icon-tif, .icon-gif, .icon-eps {
+				background-image: url({f:uri.resource(path:'icons/jpeg.png', package: 'PHLU.Portal')});
+				}
+			.icon-mp3, .icon-m4a, .icon-wma, .icon-f4a, .icon-wav, .icon-oga {
+				background-image: url({f:uri.resource(path:'icons/mp3.png', package: 'PHLU.Portal')});
+				}
+			.icon-mov, .icon-avi, .icon-mpeg, .icon-mpg, .icon-mp4, .icon-m4v, .icon-flv, .icon-f4v, .icon-webm, .icon-wmv, .icon-ogv, .icon-3gp{
+				background-image: url({f:uri.resource(path:'icons/video.png', package: 'PHLU.Portal')});
+				}
+			.icon-htm, .icon-html {
+				background-image: url({f:uri.resource(path:'icons/markup.png', package: 'PHLU.Portal')});
+				}
+			.icon-zip {
+				background-image: url({f:uri.resource(path:'icons/archive.png', package: 'PHLU.Portal')});
+				}
+
+			.searchFilters-hidden { display: none; }
+
+		</style>
 	</head>
 	<body>
 		<f:flashMessages class="flashmessages" />
