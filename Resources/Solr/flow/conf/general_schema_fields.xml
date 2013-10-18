@@ -76,7 +76,6 @@
 	<field name="fileExtension"           type="string"  indexed="true"  stored="true" />
 	<field name="fileMimeType"            type="string"  indexed="true"  stored="true" />
 	<field name="fileRelativePath"        type="string"  indexed="true"  stored="true" />
-	<field name="fileRelativePathOnly"    type="string"  indexed="true"  stored="true" />
 	<field name="fileSha1"                type="string"  indexed="false" stored="true" />
 
 	<!--

@@ -9,13 +9,24 @@
 			<p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten.</p>
 			<ul>
 			<f:for each="{solrDocs}" as="solrDoc">
-				<li data-score="{solrDoc.score}">
-					<div class="icon icon-{solrDoc.fileExtension}"></div>
-					<p class="searchResult-title"><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>
-					<p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
-					<p class="searchResult-lastChanged">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
-					<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
-				</li>
+				<f:if condition="{solrDoc.url}">
+					<f:then>
+						<li data-score="{solrDoc.score}">
+							<div class="icon icon-{solrDoc.fileExtension}"></div>
+							<p class="searchResult-title"><f:link.external uri="{solrDoc.url}" target="_blank">{solrDoc.title}</f:link.external></p>
+							<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+						</li>
+					</f:then>
+					<f:else>
+						<li data-score="{solrDoc.score}">
+							<div class="icon icon-{solrDoc.fileExtension}"></div>
+							<p class="searchResult-title"><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>
+							<p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
+							<p class="searchResult-lastChanged">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
+							<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+						</li>
+					</f:else>
+				</f:if>
 			</f:for>
 			</ul>
 		</f:then>

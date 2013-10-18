@@ -70,7 +70,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	protected $solrClient;
 
 	/**
-	 * Puts existing resources to the index queue
+	 * Puts all existing resources to the index queue
 	 *
 	 * The comment of this command method is also used for TYPO3 Flow's help screens. The first line should give a very short
 	 * summary about what the command does. Then, after an empty line, you should explain in more detail what the command
@@ -81,9 +81,9 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 *
 	 * @return void
 	 */
-	public function putResourcesToQueueCommand() {
+	public function putAllResourcesToQueueCommand() {
 		$table = 'phlu_portal_domain_model_file';
-		$whereClause = "WHERE path NOT LIKE 'Moodle%' AND resource IS NOT NULL";
+		$whereClause = "WHERE path IS NOT NULL AND (resource IS NOT NULL OR externalresource IS NOT NULL)";
 		$this->indexQueueRepository->putResourcesToQueue($table, $whereClause);
 		$this->outputLine('Alle Resourcen, die noch nicht in der Index-Queue sind, wurden in die Index-Queue gestellt.');
 	}
@@ -99,6 +99,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	public function queueWorkerCommand($filesPerRun = 20) {
 		$table = 'phlu_portal_domain_model_file';
 		$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
+
 		// we proceed if the Solr server is reachable
 		if (is_object($this->solrClient->ping())) {
 
@@ -144,70 +145,11 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 * @return boolean
 	 */
 	public function addResourceToIndex($resource, $table) {
+		$solrDocument = $this->getSolrDocumentForResource($resource, $table);
 
-		$resourceStreamPointer = FLOW_PATH_DATA . $this->settings['tika']['resourcesPathRelativeFromFlowDataPath'] . $resource->getSha1();
-
-
-		if (is_file($resourceStreamPointer)) {
-
-			$appKey = 'PHLU.SolrSearch';
-
-			$document = new \SolrInputDocument();
-
-			$document->addField('id', $appKey . '/' . $table . '/' . $resource->getId());
-			$document->addField('uuid', $resource->getId());
-			$document->addField('appKey', $appKey);
-			$document->addField('type', $table);
-
-
-			/** @var \PHLU\Portal\Domain\Model\Filebrowser $filebrowser */
-			$filebrowser = $this->filebrowserRepository->getFilebrowserByFileNoAccessCheck($resource)->getFirst();
-			$document->addField('resourceCollection', $filebrowser->getId());
-
-			// Content from resource
-			$resourceContent = $this->tikaService->extractText($resourceStreamPointer, $this->settings['tika']);
-			if ($resourceContent === FALSE) {
-				$this->outputLine('Tika Fehler: Kein Inhalt für ' . $resourceStreamPointer);
-			} else {
-				$document->addField('content', $resourceContent);
-			}
-
-			// Metadata from resource
-			$resourceMetadata = $this->tikaService->extractMetadata($resourceStreamPointer, $this->settings['tika']);
-			if ($resourceMetadata === FALSE) {
-				$this->outputLine('Tika Fehler: Keine Metdaten für ' . $resourceStreamPointer);
-				$document->addField('created', self::timestampToIso($resource->getMetadata()->getCreated()->getTimestamp()));
-				$document->addField('changed', self::timestampToIso($resource->getMetadata()->getLastmodified()->getTimestamp()));
-			} else {
-				// title from documents is unreliable users are not force to set it
-				//$document->addField('title', !empty($resourceMetadata['title']) ? $resourceMetadata['title'] : '');
-				$document->addField('abstract', $resource->getSha1());
-				$document->addField('author', !empty($resourceMetadata['Author']) ? $resourceMetadata['Author'] : '');
-				$document->addField('fileMimeType', !empty($resourceMetadata['Content-Type']) ? $resourceMetadata['Content-Type'] : '');
-				$document->addField('keywords',  !empty($resourceMetadata['Keywords']) ? $resourceMetadata['Keywords'] : '');
-				$document->addField('created', !empty($resourceMetadata['Creation-Date']) ? self::getSolrCompliantDate($resourceMetadata['Creation-Date']) : self::timestampToIso($resource->getMetadata()->getCreated()->getTimestamp()));
-				$document->addField('changed', !empty($resourceMetadata['Last-Modified']) ? self::getSolrCompliantDate($resourceMetadata['Last-Modified']) : self::timestampToIso($resource->getMetadata()->getLastmodified()->getTimestamp()));
-			}
-
-			$document->addField('breadcrumb', $this->getBreadCrumbFromPath($resource->getMetadata()->getOriginal_path(), $resource->getMetadata()->getOriginal_repository()));
-
-			// unused fields, getters missing
-			//		$document->addField('description', $resource->getMetadata()->getDescription());
-			//		$document->addField('creator', $resource->getMetadata()->getCreator());
-
-			// bei Moodle: $resource->getExternalresource
-			//		$document->addField('url', $resource->getSha1());
-
-			$document->addField('title', $resource->getMetadata()->getName());
-			$document->addField('fileName', $resource->getResource()->getFilename());
-			$document->addField('fileExtension', $resource->getResource()->getFileExtension());
-			$document->addField('fileRelativePath', $resource->getPath());
-			$document->addField('fileRelativePathOnly', $resource->getPath());
-			$document->addField('fileSha1', $resource->getSha1());
-
-
+		if ($solrDocument !== FALSE) {
 			try {
-				$updateResponse = $this->solrClient->addDocument($document);
+				$updateResponse = $this->solrClient->addDocument($solrDocument);
 			} catch (Exception $e) {
 				$this->outputLine('Dokument ungültig.');
 			}
@@ -220,10 +162,100 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 				$this->outputLine('Fehler beim Hinzufügen: ' . $resource->getName());
 				return FALSE;
 			}
-		} else {
-			$this->outputLine('Nicht zum Index hinzugefügt da Datei nicht gefunden: ' . $resourceStreamPointer);
+		}
+
+	}
+
+	/**
+	 * Creates a SolrInputDocument object for a resource, returns FALSE if a file could not be found
+	 *
+	 * @param \PHLU\Portal\Domain\Model\File $resource
+	 * @param $table
+	 * @return bool|\SolrInputDocument
+	 */
+	public function getSolrDocumentForResource(\PHLU\Portal\Domain\Model\File $resource, $table) {
+		$appKey = 'PHLU.SolrSearch';
+		$document = new \SolrInputDocument();
+
+		$document->addField('id', $appKey . '/' . $table . '/' . $resource->getId());
+		$document->addField('uuid', $resource->getId());
+		$document->addField('appKey', $appKey);
+		$document->addField('type', $table);
+
+		$document->addField('breadcrumb', $this->getBreadCrumbFromPath($resource->getMetadata()->getOriginal_path(), $resource->getMetadata()->getOriginal_repository()));
+
+		if (!is_string($resource->getMetadata()->getName())) {
+			// we can't add a resource without file name to the index
+			$this->outputLine('Nicht zum Index hinzugefügt da Datei keinen Namen hat: ' . $resource->getId());
 			return FALSE;
 		}
+		$document->addField('title', $resource->getMetadata()->getName());
+		$document->addField('fileRelativePath', $resource->getPath());
+		$document->addField('fileSha1', $resource->getSha1());
+
+		// unused fields, getters missing
+		//		$document->addField('description', $resource->getMetadata()->getDescription());
+		//		$document->addField('creator', $resource->getMetadata()->getCreator());
+
+
+		/** @var \PHLU\Portal\Domain\Model\Filebrowser $filebrowser */
+		$filebrowser = $this->filebrowserRepository->getFilebrowserByFileNoAccessCheck($resource)->getFirst();
+		$document->addField('resourceCollection', $filebrowser->getId());
+
+		// fields specific to the type of the file (virtual or non-virtual)
+		if ($resource->getExternalresource() === NULL) {
+			// this is a "normal" document that is present on the server
+
+			$document->addField('fileName', $resource->getResource()->getFilename());
+			$document->addField('fileExtension', $resource->getResource()->getFileExtension());
+
+			$resourceStreamPointer = FLOW_PATH_DATA . $this->settings['tika']['resourcesPathRelativeFromFlowDataPath'] . $resource->getSha1();
+			if (is_file($resourceStreamPointer)) {
+				// Content from resource
+				$resourceContent = $this->tikaService->extractText($resourceStreamPointer, $this->settings['tika']);
+				if ($resourceContent === FALSE) {
+					$this->outputLine('Tika Fehler: Kein Inhalt für ' . $resourceStreamPointer);
+				} else {
+					$document->addField('content', $resourceContent);
+				}
+
+				// Metadata from resource
+				$resourceMetadata = $this->tikaService->extractMetadata($resourceStreamPointer, $this->settings['tika']);
+				if ($resourceMetadata === FALSE) {
+					$this->outputLine('Tika Fehler: Keine Metdaten für ' . $resourceStreamPointer);
+					$document->addField('created', self::timestampToIso($resource->getMetadata()->getCreated()->getTimestamp()));
+					$document->addField('changed', self::timestampToIso($resource->getMetadata()->getLastmodified()->getTimestamp()));
+				} else {
+					// title from documents is unreliable users are not force to set it
+					//$document->addField('title', !empty($resourceMetadata['title']) ? $resourceMetadata['title'] : '');
+					$document->addField('abstract', $resource->getSha1());
+					$document->addField('author', !empty($resourceMetadata['Author']) ? $resourceMetadata['Author'] : '');
+					$document->addField('fileMimeType', !empty($resourceMetadata['Content-Type']) ? $resourceMetadata['Content-Type'] : '');
+					$document->addField('keywords',  !empty($resourceMetadata['Keywords']) ? $resourceMetadata['Keywords'] : '');
+					$document->addField('created', !empty($resourceMetadata['Creation-Date']) ? self::getSolrCompliantDate($resourceMetadata['Creation-Date']) : self::timestampToIso($resource->getMetadata()->getCreated()->getTimestamp()));
+					$document->addField('changed', !empty($resourceMetadata['Last-Modified']) ? self::getSolrCompliantDate($resourceMetadata['Last-Modified']) : self::timestampToIso($resource->getMetadata()->getLastmodified()->getTimestamp()));
+				}
+			} else {
+				// early return if the file doesn't exist
+				$this->outputLine('Nicht zum Index hinzugefügt da Datei nicht gefunden: ' . $resourceStreamPointer);
+				return FALSE;
+			}
+		} else {
+			// we have a virtual Moodle document that is only linked
+			if ($resource->getExternalresource() === 'https://moodle.phlu.ch') {
+				// if it is no file in Moodle, quit
+				$this->outputLine('Nicht zum Index hinzugefügt da externalresource nicht auf eine Datei zeigt: ' . $resource->getName());
+				return FALSE;
+			}
+			$document->addField('url', $resource->getExternalresource());
+
+			// since we have no resource, we must extract the fileName and fileExtension ourselves
+			$document->addField('fileName', $resource->getName());
+			$fileExtension = pathinfo($resource->getName(), PATHINFO_EXTENSION);
+			$document->addField('fileExtension', $fileExtension);
+		}
+
+		return $document;
 
 	}
 

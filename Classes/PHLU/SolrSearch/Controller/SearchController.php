@@ -135,6 +135,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 				->addField('fileName')
 				->addField('breadcrumb')
 				->addField('score')
+				->addField('url')
 				->addField('changed');
 
 			// configuration for highlighting the query string in results

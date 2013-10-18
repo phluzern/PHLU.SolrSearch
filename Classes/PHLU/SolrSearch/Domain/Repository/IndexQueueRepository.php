@@ -40,6 +40,13 @@ class IndexQueueRepository extends Repository {
 
 	}
 
+	/**
+	 * Find a number of files of a certain resourceModel
+	 *
+	 * @param $limit
+	 * @param $table
+	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
+	 */
 	public function findItemsToIndex($limit, $table) {
 
 		$query = $this->createQuery();
