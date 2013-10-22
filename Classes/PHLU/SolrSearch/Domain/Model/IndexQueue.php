@@ -29,7 +29,7 @@ class IndexQueue {
 	 * @var \DateTime
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
-	protected $changed;
+	protected $deleted;
 
 	/**
 	 * @var \DateTime
@@ -42,13 +42,6 @@ class IndexQueue {
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */
 	protected $error;
-
-	/**
-	 * @var string
-	 * @ORM\Column(type="string", nullable=true)
-	 */
-	protected $solrDocumentId;
-
 
 	/**
 	 * @return string
@@ -83,16 +76,16 @@ class IndexQueue {
 	/**
 	 * @return \DateTime
 	 */
-	public function getChanged() {
-		return $this->changed;
+	public function getDeleted() {
+		return $this->deleted;
 	}
 
 	/**
-	 * @param \DateTime $changed
+	 * @param \DateTime $deleted
 	 * @return void
 	 */
-	public function setChanged($changed) {
-		$this->changed = $changed;
+	public function setDeleted($deleted) {
+		$this->deleted = $deleted;
 	}
 
 	/**
@@ -123,21 +116,6 @@ class IndexQueue {
 	 */
 	public function setError($error) {
 		$this->error = $error;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getSolrDocumentId() {
-		return $this->solrDocumentId;
-	}
-
-	/**
-	 * @param string $solrDocumentId
-	 * @return void
-	 */
-	public function setSolrDocumentId($solrDocumentId) {
-		$this->solrDocumentId = $solrDocumentId;
 	}
 
 }

@@ -53,6 +53,7 @@ class IndexQueueRepository extends Repository {
 		$query->matching(
 			$query->logicalAnd(
 				$query->equals('indexed', NULL),
+				$query->equals('deleted', NULL),
 				$query->equals('error', NULL),
 				$query->equals('resourceModel', $table)
 			)
