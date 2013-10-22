@@ -11,6 +11,7 @@
 			<f:for each="{solrDocs}" as="solrDoc">
 				<f:if condition="{solrDoc.url}">
 					<f:then>
+						<f:comment>This is the "template" for a Moodle file.</f:comment>
 						<li data-score="{solrDoc.score}">
 							<div class="icon icon-{solrDoc.fileExtension}"></div>
 							<p class="searchResult-title"><f:link.external uri="{solrDoc.url}" target="_blank">{solrDoc.title}</f:link.external></p>
@@ -18,6 +19,7 @@
 						</li>
 					</f:then>
 					<f:else>
+						<f:comment>This is the "template" for a "normal" file.</f:comment>
 						<li data-score="{solrDoc.score}">
 							<div class="icon icon-{solrDoc.fileExtension}"></div>
 							<p class="searchResult-title"><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>

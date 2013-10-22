@@ -23,6 +23,7 @@ class TikaService {
 	public function extractText($inputFile, $tikaSettings) {
 
 		$tikaCommand = 'java -Dfile.enconding=UTF8 -jar \'' . $tikaSettings['path'] . '\' -t ' . escapeshellarg($inputFile);
+
 		$shellOutput = shell_exec($tikaCommand);
 
 		// TODO Logging actions
