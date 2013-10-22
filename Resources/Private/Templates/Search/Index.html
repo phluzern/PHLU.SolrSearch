@@ -2,40 +2,56 @@
 
 <f:layout name="Default" />
 
-<f:section name="Title">Solr search</f:section>
-
+<f:section name="Title">Dateisuche</f:section>
 <f:section name="Content">
-	<div style="height: 200px;">hdfjsdhfjd</div>
-	<h2>Suchen</h2>
-	<f:form action="index">
-		<f:form.textfield value="{queryString}" name="query"></f:form.textfield><br />
-		<label for="filter-fileMimeType-pdf"><f:form.checkbox id="filter-fileMimeType-pdf" name="filter[fileMimeType][]" value="application/pdf"></f:form.checkbox> PDF</label><br />
-		<label for="filter-fileMimeType-word"><f:form.checkbox id="filter-fileMimeType-word" name="filter[fileMimeType][]" value="application/msword"></f:form.checkbox> Word</label><br />
-		<f:form.submit value="suchen"></f:form.submit>
-	</f:form>
-	<h2>Suchresultate</h2>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script>
+		$(function() {
+			$('#openFilters').click(function() {
+				$('#searchFilters').slideToggle();
+			});
 
-		<f:if condition="{solrDocs}">
-			<f:then>
-				<ul>
-				<f:for each="{solrDocs}" as="solrDoc">
-					<li>
-<<<<<<< HEAD
-						<p><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>
-=======
-						<p><a href="#">{solrDoc.title}</a></p>
->>>>>>> d6641a0... [WIP] Add Solr search
-						<phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" />
-						<p>{solrDoc.changed}</p>
-						<p>{solrDoc.fileMimeType}</p>
-						<p>{solrDoc.uuid}/{solrDoc.fileName}</p>
-					</li>
+			$('#searchForm').bind('submit', function(event) {
+				event.preventDefault();
+				var form = $(this);
+				$.ajax({
+						type: 'POST',
+						url: form.attr('action'),
+						data: form.serialize(),
+						success: function(data) {
+							$('#searchResults').html(data);
+						}
+				});
+			});
+		});
+	</script>
+	<h2>Suchen</h2>
+	<f:form id="searchForm" action="results">
+		<f:form.textfield value="{requestArguments.query}" name="query" />
+		<f:form.submit value="suchen" />
+		Sortieren nach: <select name="sorting">
+			<option {f:if(condition: '{0:requestArguments.sorting} == {0:\'score\'}', then: 'selected', else: '')} value="score">Relevanz</option>
+			<option {f:if(condition: '{0:requestArguments.sorting} == {0:\'changed\'}', then: 'selected', else: '')} value="changed">Datum</option>
+		</select>
+		<br />
+		<button type="button" id="openFilters">Suche eingrenzen</button>
+		<div id="searchFilters" class="searchFilters-hidden">
+			<fieldset id="documentType">
+				<legend>Dokumententyp</legend>
+				<f:for each="{documentTypes}" as="documentType" key="key">
+					<label for="documentType-{key}"><f:form.checkbox id="documentType-{key}" name="documentType[]" value="{key}" checked="{phlu:contains(haystack: requestArguments.documentType, needle: key, then: 'checked', else: '')}" /> {documentType.speakingName}</label>
 				</f:for>
-				</ul>
-			</f:then>
-			<f:else>
-				<p>Nix gefunden.</p>
-			</f:else>
-		</f:if>
-		
+			</fieldset>
+			<fieldset id="filter-resourceCollection">
+				<legend>Sammlung</legend>
+				<f:for each="{filebrowsers}" as="filebrowser" iteration="iterator">
+					<label for="filter-resourceCollection-{iterator.cycle}"><f:form.checkbox id="filter-resourceCollection-{iterator.cycle}" name="filter[resourceCollection][]" value="{filebrowser.id}" checked="{phlu:contains(haystack: requestArguments.filter.resourceCollection, needle: filebrowser.id, then: 'checked', else: '')}" /> {filebrowser.name}</label>
+				</f:for>
+			</fieldset>
+		</div>
+
+	</f:form>
+
+	<div id="searchResults"></div>
+
 </f:section>

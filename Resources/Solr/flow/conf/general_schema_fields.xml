@@ -53,7 +53,7 @@
 	<!-- system fields -->
 	<field name="created"  type="date" indexed="true" stored="true" />
 	<field name="changed"  type="date" indexed="true" stored="true" />
-	<field name="breadcrumb" type="string" indexed="true" stored="true" multiValued="true" />
+	<field name="breadcrumb" type="string" indexed="true" stored="true" />
 
 	<!--
 	    UUID of the resource collection
@@ -76,7 +76,6 @@
 	<field name="fileExtension"           type="string"  indexed="true"  stored="true" />
 	<field name="fileMimeType"            type="string"  indexed="true"  stored="true" />
 	<field name="fileRelativePath"        type="string"  indexed="true"  stored="true" />
-	<field name="fileRelativePathOnly"    type="string"  indexed="true"  stored="true" />
 	<field name="fileSha1"                type="string"  indexed="false" stored="true" />
 
 	<!--

@@ -38,6 +38,12 @@ class IndexQueue {
 	protected $indexed;
 
 	/**
+	 * @var \DateTime
+	 * @ORM\Column(type="datetime", nullable=true)
+	 */
+	protected $error;
+
+	/**
 	 * @var string
 	 * @ORM\Column(type="string", nullable=true)
 	 */
@@ -102,6 +108,21 @@ class IndexQueue {
 	 */
 	public function setIndexed($indexed) {
 		$this->indexed = $indexed;
+	}
+
+	/**
+	 * @return \DateTime
+	 */
+	public function getError() {
+		return $this->error;
+	}
+
+	/**
+	 * @param \DateTime $error
+	 * @return void
+	 */
+	public function setError($error) {
+		$this->error = $error;
 	}
 
 	/**
