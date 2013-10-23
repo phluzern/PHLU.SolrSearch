@@ -242,7 +242,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 				if ($resourceContent === FALSE) {
 					$this->outputLine('Tika Fehler: Kein Inhalt für ' . $resourceStreamPointer);
 				} else {
-					$document->addField('content', $resourceContent);
+					$document->addField('content', utf8_encode($resourceContent));
 				}
 
 				// Metadata from resource
