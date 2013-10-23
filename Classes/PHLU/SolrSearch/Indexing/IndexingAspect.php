@@ -47,4 +47,26 @@ class IndexingAspect {
 		}
 	}
 
+	/**
+	 * Put a file to the index queue when it's added to phlu_portal_domain_model_file
+	 *
+	 * @param \TYPO3\Flow\AOP\JoinPointInterface $joinPoint
+	 * @Flow\After("method(PHLU\Portal\Domain\Model\Filebrowser->addFile())")
+	 * @return void
+	 */
+	public function addFileToSearchIndex(\TYPO3\Flow\AOP\JoinPointInterface $joinPoint) {
+		$table = 'phlu_portal_domain_model_file';
+
+		/** @var \PHLU\Portal\Domain\Model\File $file */
+		$file = $joinPoint->getMethodArgument('file');
+
+		/** @var \PHLU\SolrSearch\Domain\Model\IndexQueue $indexJob */
+		$indexQueueItem = new \PHLU\SolrSearch\Domain\Model\IndexQueue;
+		$indexQueueItem->setResourceModel($table);
+		$indexQueueItem->setResource($file->getId());
+
+		$this->indexQueueRepository->add($indexQueueItem);
+
+	}
+
 }
