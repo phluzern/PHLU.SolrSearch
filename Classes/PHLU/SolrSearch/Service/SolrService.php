@@ -22,7 +22,8 @@ class SolrService {
 	public function getSolrClient($solrServerSettings) {
 		$options = array(
 			'hostname' => $solrServerSettings['host'],
-			'port' => $solrServerSettings['port']
+			'port' => $solrServerSettings['port'],
+			'path' => $solrServerSettings['path']
 		);
 
 		return new \SolrClient($options);
