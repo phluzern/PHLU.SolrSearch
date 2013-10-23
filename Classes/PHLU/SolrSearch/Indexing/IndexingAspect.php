@@ -24,7 +24,13 @@ class IndexingAspect {
 	protected $indexQueueRepository;
 
 	/**
-	 * Log a message if a post is deleted
+	 * @var \TYPO3\Flow\Persistence\PersistenceManagerInterface
+	 * @Flow\Inject
+	 */
+	protected $persistenceManager;
+
+	/**
+	 * Mark a file as deleted in the index queue when it's removed from phlu_portal_domain_model_file
 	 *
 	 * @param \TYPO3\Flow\AOP\JoinPointInterface $joinPoint
 	 * @Flow\After("method(PHLU\Portal\Domain\Model\Filebrowser->removeFile())")
@@ -33,16 +39,12 @@ class IndexingAspect {
 	public function removeFileFromSearchIndex(\TYPO3\Flow\AOP\JoinPointInterface $joinPoint) {
 		/** @var \PHLU\Portal\Domain\Model\File $file */
 		$file = $joinPoint->getMethodArgument('file');
-		\TYPO3\Flow\var_dump('hier');
 		/** @var \PHLU\SolrSearch\Domain\Model\IndexQueue $indexQueueItem */
 		$indexQueueItem = $this->indexQueueRepository->findOneByResource($file->getId());
-		\TYPO3\Flow\var_dump($indexQueueItem, 'indexQueueItem');
 		if (is_object($indexQueueItem)) {
-			\TYPO3\Flow\var_dump('hier2');
-
 			$indexQueueItem->setDeleted(new \TYPO3\Flow\Utility\Now);
+			$this->indexQueueRepository->update($indexQueueItem);
 		}
-
 	}
 
 }

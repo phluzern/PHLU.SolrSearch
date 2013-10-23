@@ -63,6 +63,23 @@ class IndexQueueRepository extends Repository {
 
 	}
 
+	/**
+	 * Find all files that need to be removed from the Solr index
+	 *
+	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
+	 */
+	public function findItemsToDelete() {
+
+		$query = $this->createQuery();
+		$query->matching(
+			$query->logicalNot(
+				$query->equals('deleted', NULL)
+			)
+		);
+		return $query->execute();
+
+	}
+
 }
 ?>
 

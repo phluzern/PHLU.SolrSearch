@@ -121,7 +121,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	}
 
 	/**
-	 * Emty the Solr index
+	 * Empty the Solr index
 	 *
 	 * Removes all (!) documents from the Solr index
 	 *
@@ -132,6 +132,32 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		// we proceed if the Solr server is reachable
 		if (is_object($this->solrClient->ping())) {
 			$this->solrClient->deleteByQuery("*:*");
+			$this->solrClient->commit();
+		}
+	}
+
+	/**
+	 * Garbage collector
+	 *
+	 * Removes all deleted resources from the Solr index
+	 *
+	 * @return void
+	 */
+	public function garbageCollectorCommand() {
+		$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
+		// we proceed if the Solr server is reachable
+		if (is_object($this->solrClient->ping())) {
+			$filesToDelete = $this->indexQueueRepository->findItemsToDelete();
+
+			foreach ($filesToDelete as $fileToDelete) {
+				$appKey = 'PHLU.SolrSearch';
+				// example: PHLU.SolrSearch/phlu_portal_domain_model_file/00024887-63FF-F56F-3961-9F434A3E3CB6
+				$fileId = $appKey . '/' . $fileToDelete->getResourceModel() . '/' . $fileToDelete->getResource();
+				$this->solrClient->deleteByQuery('id:' . $fileId);
+				// delete item from index queue
+				$this->indexQueueRepository->remove($fileToDelete);
+				$this->outputLine('Resource als Solr-Index gelöscht: ' . $fileId);
+			}
 			$this->solrClient->commit();
 		}
 	}
