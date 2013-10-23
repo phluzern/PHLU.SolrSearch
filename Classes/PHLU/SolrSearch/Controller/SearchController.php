@@ -28,25 +28,30 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 	protected $solrClient;
 
 	/**
-	 * @return void
+	 * @return string
 	 */
 	public function indexAction() {
 
+		$template = new \TYPO3\Fluid\View\StandaloneView();
+		$template->setTemplatePathAndFilename('resource://PHLU.SolrSearch/Private/Templates/Search/Index.html');
+
 		// get all file browsers the current user has permissions to use
 		$filebrowsers = $this->filebrowserRepository->get_filebrowsers();
-		$this->view->assign('filebrowsers', $filebrowsers);
+		$template->assign('filebrowsers', $filebrowsers);
 
 		// get all media types
-		$this->view->assign('documentTypes', $this->settings['documentTypes']);
+		$template->assign('documentTypes', $this->settings['documentTypes']);
 
-		$requestArguments = $this->request->getArguments();
+		/*$requestArguments = $this->request->getArguments();
 		if (!empty($requestArguments)) {
 			// if the filter tab is opened
 			$displayFilters = FALSE;
 
-			$this->view->assign('requestArguments', $requestArguments);
-			$this->view->assign('searchFiltersClass', $displayFilters ? 'searchFilters' : 'searchFilters-hidden');
-		}
+			$template->assign('requestArguments', $requestArguments);
+			$template->assign('searchFiltersClass', $displayFilters ? 'searchFilters' : 'searchFilters-hidden');
+		}*/
+
+		return $template->renderSection('Content');
 
 	}
 		/**

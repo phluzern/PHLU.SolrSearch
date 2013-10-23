@@ -1,10 +1,79 @@
 {namespace phlu=PHLU\SolrSearch\ViewHelpers}
 
 <f:layout name="Default" />
-
-<f:section name="Title">Dateisuche</f:section>
 <f:section name="Content">
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<style type="text/css">
+		div#searchResults {
+			background-color: white;
+			min-width: 900px;
+			width: 900px;
+			height: 500px;
+			overflow: visible;
+			color: #000;
+			display: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: 999;
+		}
+		#searchResultsInner ul { list-style-type: none; margin: 0; padding: 0; }
+		#searchResultsInner ul li { margin: 0 0 20px 0; }
+
+		#searchFilters { color: #000; }
+
+		.searchResults-info { margin-bottom: 20px; }
+
+		.pathSeparator { display: inline-block; margin: 0 5px; }
+
+		.searchResult-title { font-weight: bold;}
+		.searchResult-highlighted { color: red; font-weight: bold;}
+		.searchFilters-hidden { display: none; }
+
+		p { margin: 0 0 2px 0; }
+		p.searchResult-title { margin-bottom: 5px; }
+		p.searchResult-content { margin-bottom: 5px; }
+		p.searchResult-lastChanged { color: #979797; }
+
+		.icon {
+			display: inline-block;
+			float: left;
+			height: 16px;
+			width: 16px;
+			background-repeat: no-repeat;
+			background-image: url({f:uri.resource(path:'icons/unknown.png', package: 'PHLU.Portal')});
+		margin-right: 5px;
+			}
+		.icon-pdf {
+			background-image: url({f:uri.resource(path:'icons/pdf.png', package: 'PHLU.Portal')});
+			}
+		.icon-doc, .icon-docm, .icon-docx, .icon-rtf, .icon-odt, .icon-dotx, .icon-dot, .icon-dotm, .icon-txt {
+			background-image: url({f:uri.resource(path:'icons/document.png', package: 'PHLU.Portal')});
+			}
+		.icon-xls, .icon-xlsx, .icon-xltx, .icon-xlt, .icon-xltm {
+			background-image: url({f:uri.resource(path:'icons/spreadsheet.png', package: 'PHLU.Portal')});
+			}
+		.icon-ppt, .icon-pptx, .icon-pptm, .icon-pps, .icon-ppsx, .icon-potx, .icon-potm {
+			background-image: url({f:uri.resource(path:'icons/powerpoint.png', package: 'PHLU.Portal')});
+			}
+		.icon-jpg, .icon-jpeg, .icon-bmp, .icon-png, .icon-tiff, .icon-tif, .icon-gif, .icon-eps {
+			background-image: url({f:uri.resource(path:'icons/jpeg.png', package: 'PHLU.Portal')});
+			}
+		.icon-mp3, .icon-m4a, .icon-wma, .icon-f4a, .icon-wav, .icon-oga {
+			background-image: url({f:uri.resource(path:'icons/mp3.png', package: 'PHLU.Portal')});
+			}
+		.icon-mov, .icon-avi, .icon-mpeg, .icon-mpg, .icon-mp4, .icon-m4v, .icon-flv, .icon-f4v, .icon-webm, .icon-wmv, .icon-ogv, .icon-3gp{
+			background-image: url({f:uri.resource(path:'icons/video.png', package: 'PHLU.Portal')});
+			}
+		.icon-htm, .icon-html {
+			background-image: url({f:uri.resource(path:'icons/markup.png', package: 'PHLU.Portal')});
+			}
+		.icon-zip {
+			background-image: url({f:uri.resource(path:'icons/archive.png', package: 'PHLU.Portal')});
+			}
+
+		.searchFilters-hidden { display: none; }
+
+	</style>
 	<script>
 		$(function() {
 			$('#openFilters').click(function() {
@@ -19,20 +88,21 @@
 						url: form.attr('action'),
 						data: form.serialize(),
 						success: function(data) {
-							$('#searchResults').html(data);
+							$('#searchResults').html(data).slideDown();
 						}
 				});
 			});
 		});
 	</script>
-	<h2>Suchen</h2>
-	<f:form id="searchForm" action="results">
-		<f:form.textfield value="{requestArguments.query}" name="query" />
-		<f:form.submit value="suchen" />
-		Sortieren nach: <select name="sorting">
+	<h3>Suchen</h3>
+	<f:form id="searchForm" action="results" package="PHLU.SolrSearch" controller="Search">
+		<f:form.textfield id="searchField" value="{requestArguments.query}" name="query" />
+		<h4>Sortieren nach</h4>
+		<select name="sorting">
 			<option {f:if(condition: '{0:requestArguments.sorting} == {0:\'score\'}', then: 'selected', else: '')} value="score">Relevanz</option>
 			<option {f:if(condition: '{0:requestArguments.sorting} == {0:\'changed\'}', then: 'selected', else: '')} value="changed">Datum</option>
 		</select>
+		<button id="searchFormSubmit" type="submit"><i class="icon icon-arrow-right"></i></button>
 		<br />
 		<button type="button" id="openFilters">Suche eingrenzen</button>
 		<div id="searchFilters" class="searchFilters-hidden">
@@ -51,7 +121,5 @@
 		</div>
 
 	</f:form>
-
-	<div id="searchResults"></div>
 
 </f:section>
