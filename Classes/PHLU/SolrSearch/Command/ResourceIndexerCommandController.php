@@ -208,7 +208,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		$document->addField('appKey', $appKey);
 		$document->addField('type', $table);
 
-		$document->addField('breadcrumb', $this->getBreadCrumbFromPath($resource->getMetadata()->getOriginal_path(), $resource->getMetadata()->getOriginal_repository()));
+		$document->addField('breadcrumb', $this->getBreadCrumbFromPath($resource->getPath(), $resource->getOriginal_filebrowser()));
 
 		if (!is_string($resource->getMetadata()->getName())) {
 			// we can't add a resource without file name to the index
@@ -336,8 +336,11 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		//unset($pathParts[0]);
 
 		$breadCrumbItems = array();
+        $absolutePath = "";
 		foreach ($pathParts as $pathPart) {
-			$breadCrumbItems[] = '<a href="#" onclick="return filebrowser_open_path(\'' . $resourceCollection . '\', \'' . $pathPart . '\')">' . $pathPart . '</a>';
+            if ($absolutePath == "") {} else {$absolutePath .= "/";}
+            $absolutePath .= $pathPart;
+			$breadCrumbItems[] = '<a href="#" onclick="return filebrowser_open_path(\'' . $resourceCollection . '\', \'' . md5($absolutePath) . '\',true)">' . $pathPart . '</a>';
 		}
 
 		return implode('<span class="pathSeparator">&gt;</span>', $breadCrumbItems);

@@ -1,40 +1,54 @@
 {namespace phlu=PHLU\SolrSearch\ViewHelpers}
 
-<f:layout name="AjaxResponse" />
+<f:layout name="Html" />
 <f:section name="Content">
-	<h2>Suchresultate</h2>
-	<div id="searchResultsInner">
-	<f:if condition="{solrDocs}">
-		<f:then>
-			<p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten.</p>
-			<ul>
-			<f:for each="{solrDocs}" as="solrDoc">
-				<f:if condition="{solrDoc.url}">
-					<f:then>
-						<li data-score="{solrDoc.score}">
-							<div class="icon icon-{solrDoc.fileExtension}"></div>
-							<p class="searchResult-title"><f:link.external uri="{solrDoc.url}" target="_blank">{solrDoc.title}</f:link.external></p>
-							<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
-						</li>
-					</f:then>
-					<f:else>
-						<li data-score="{solrDoc.score}">
-							<div class="icon icon-{solrDoc.fileExtension}"></div>
-							<p class="searchResult-title"><f:link.action package="PHLU.Portal" controller="filebrowser" action="Download" arguments="{file: solrDoc.uuid}">{solrDoc.title}</f:link.action></p>
-							<p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
-							<p class="searchResult-lastChanged">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
-							<p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
-						</li>
-					</f:else>
-				</f:if>
-			</f:for>
-			</ul>
-		</f:then>
-		<f:else>
-			<p>Keine Resultate gefunden.</p>
-		</f:else>
-	</f:if>
-	</div>
+	<h3>Suchresultate</h3>
+	<div id="searchResultsInner" class="row-fluid">
+     <div class="span-12">
+        <f:if condition="{solrDocs}">
+            <f:then>
+                <p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten.</p>
+                <ul class="listview iconic">
+                <f:for each="{solrDocs}" as="solrDoc">
+                    <f:if condition="{solrDoc.url}">
+                        <f:then>
+                            <li data-score="{solrDoc.score}" class="row-fluid">
+                                <div class="span2 icon icon-{solrDoc.fileExtension}"></div>
+                                <div class="span9">
+                                    <p class="searchResult-title"><f:link.external uri="{solrDoc.url}" target="_blank">{solrDoc.title}</f:link.external></p>
+                                    <p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+                                </div>
+                            </li>
+                        </f:then>
+                        <f:else>
+
+                            <li data-score="{solrDoc.score}" class="row-fluid" data-file="{solrDoc.uuid}">
+                                <div class="row-fluid">
+                                    <div class="span12">
+                                        <div class="icon">
+                                            <div class="span2 icon icon-{solrDoc.fileExtension} action-download"></div>
+                                        </div>
+                                        <div class="data">
+                                            <h4 class="action-download">{solrDoc.title}</h4>
+                                            <p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
+                                            <p class="action-download small file-date">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
+                                            <p class="searchResult-crumbPath small"><f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+                                        </div>
+                                    </div>
+                                </div>
+                          </li>
+
+                        </f:else>
+                    </f:if>
+                </f:for>
+                </ul>
+            </f:then>
+            <f:else>
+                <p>Keine Resultate gefunden.</p>
+            </f:else>
+        </f:if>
+     </div>
+    </div>
 	<div id="searchResultsPager">
 		<f:if condition="{offset} != 0">
 			<f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, previousPage:offset}">« zurück</f:link.action>
