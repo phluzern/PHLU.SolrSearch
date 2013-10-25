@@ -132,13 +132,18 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 *
 	 * Removes all (!) documents from the Solr index, respecting the appKey
 	 *
+	 * @param boolean $force Force clearing the whole index, not only the index for the current appKey
 	 * @return void
 	 */
-	public function emptyIndexCommand() {
+	public function emptyIndexCommand($force = FALSE) {
 		$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
 		// we proceed if the Solr server is reachable
 		if (is_object($this->solrClient->ping())) {
-			$this->solrClient->deleteByQuery('appKey:' . $this->settings['server']['appKey']);
+			if ($force) {
+				$this->solrClient->deleteByQuery('*:*');
+			} else {
+				$this->solrClient->deleteByQuery('appKey:' . $this->settings['server']['appKey']);
+			}
 			$this->solrClient->commit();
 			$this->outputLine('Der Solr-Index wurde geleert.');
 		} else {
