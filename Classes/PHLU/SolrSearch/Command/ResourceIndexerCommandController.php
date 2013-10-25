@@ -249,10 +249,18 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		if ($resource->getExternalresource() === NULL) {
 			// this is a "normal" document that is present on the server
 
+			if (!is_string($resource->getResource()->getFilename())) {
+				// early return if the file name is empty
+				$this->outputLine('Nicht zum Index hinzugefügt da Dateiname leer');
+				return FALSE;
+			}
+
 			$document->addField('fileName', $resource->getResource()->getFilename());
 			$document->addField('fileExtension', $resource->getResource()->getFileExtension());
 
 			$resourceStreamPointer = FLOW_PATH_DATA . $this->settings['tika']['resourcesPathRelativeFromFlowDataPath'] . $resource->getSha1();
+
+
 			if (is_file($resourceStreamPointer)) {
 				// Content from resource
 				$resourceContent = $this->tikaService->extractText($resourceStreamPointer, $this->settings['tika']);
