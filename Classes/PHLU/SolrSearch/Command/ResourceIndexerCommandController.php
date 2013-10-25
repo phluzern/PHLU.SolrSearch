@@ -106,11 +106,16 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 			$jobs = $this->indexQueueRepository->findItemsToIndex($filesPerRun, $table);
 			foreach ($jobs as $job) {
 				$resource = $this->fileRepository->findByIdentifier($job->getResource());
-				$success = $this->addResourceToIndex($resource, $table);
-				if ($success) {
-					$job->setIndexed(new \TYPO3\Flow\Utility\Now);
+				if (is_object($resource)) {
+					$success = $this->addResourceToIndex($resource, $table);
+					if ($success) {
+						$job->setIndexed(new \TYPO3\Flow\Utility\Now);
+					} else {
+						$job->setError(new \TYPO3\Flow\Utility\Now);
+					}
 				} else {
 					$job->setError(new \TYPO3\Flow\Utility\Now);
+					$this->outputLine('Fehler: Resource ' . $job->getResource() . ' nicht gefunden.');
 				}
 				$this->indexQueueRepository->update($job);
 			}
@@ -135,6 +140,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		if (is_object($this->solrClient->ping())) {
 			$this->solrClient->deleteByQuery("*:*");
 			$this->solrClient->commit();
+			$this->outputLine('Der Solr-Index wurde geleert.');
 		} else {
 			$this->outputLine('Fehler: Solr-Server nicht erreichbar.');
 		}
