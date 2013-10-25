@@ -90,11 +90,13 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 			$query->setStart($offset);
 			$query->setRows($this->settings['results']['resultsPerPage']);
 
-
 			/* search based on query string */
 			$queryString = !empty($requestArguments['query']) ? self::sanitizeTerm($requestArguments['query']) : '*:*';
 			// general query settings
 			$query->setQuery($queryString);
+
+			/* respect the appKey */
+			$query->addFilterQuery('appKey:' . $this->settings['server']['appKey']);
 
 			/* search based on filters, all filters are OR for the moment */
 			// TODO check if filter and filter value are valid

@@ -130,7 +130,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	/**
 	 * Empty the Solr index
 	 *
-	 * Removes all (!) documents from the Solr index
+	 * Removes all (!) documents from the Solr index, respecting the appKey
 	 *
 	 * @return void
 	 */
@@ -138,7 +138,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
 		// we proceed if the Solr server is reachable
 		if (is_object($this->solrClient->ping())) {
-			$this->solrClient->deleteByQuery("*:*");
+			$this->solrClient->deleteByQuery('appKey:' . $this->settings['server']['appKey']);
 			$this->solrClient->commit();
 			$this->outputLine('Der Solr-Index wurde geleert.');
 		} else {
@@ -212,7 +212,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 * @return bool|\SolrInputDocument
 	 */
 	public function getSolrDocumentForResource(\PHLU\Portal\Domain\Model\File $resource, $table) {
-		$appKey = 'PHLU.SolrSearch';
+		$appKey = $this->settings['server']['appKey'];
 		$document = new \SolrInputDocument();
 
 		$document->addField('id', $appKey . '/' . $table . '/' . $resource->getId());
