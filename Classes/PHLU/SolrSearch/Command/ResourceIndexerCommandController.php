@@ -117,6 +117,8 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 
 			// commit items
 			$this->solrClient->commit();
+		} else {
+			$this->outputLine('Fehler: Solr-Server nicht erreichbar.');
 		}
 	}
 
@@ -133,6 +135,8 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		if (is_object($this->solrClient->ping())) {
 			$this->solrClient->deleteByQuery("*:*");
 			$this->solrClient->commit();
+		} else {
+			$this->outputLine('Fehler: Solr-Server nicht erreichbar.');
 		}
 	}
 
@@ -159,6 +163,8 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 				$this->outputLine('Resource als Solr-Index gelöscht: ' . $fileId);
 			}
 			$this->solrClient->commit();
+		} else {
+			$this->outputLine('Fehler: Solr-Server nicht erreichbar.');
 		}
 	}
 
@@ -242,7 +248,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 				if ($resourceContent === FALSE) {
 					$this->outputLine('Tika Fehler: Kein Inhalt für ' . $resourceStreamPointer);
 				} else {
-					$document->addField('content', utf8_encode($resourceContent));
+					$document->addField('content', $resourceContent);
 				}
 
 				// Metadata from resource
@@ -336,11 +342,8 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		//unset($pathParts[0]);
 
 		$breadCrumbItems = array();
-        $absolutePath = "";
 		foreach ($pathParts as $pathPart) {
-            if ($absolutePath == "") {} else {$absolutePath .= "/";}
-            $absolutePath .= $pathPart;
-			$breadCrumbItems[] = '<a href="#" onclick="return filebrowser_open_path(\'' . $resourceCollection . '\', \'' . md5($absolutePath) . '\',true)">' . $pathPart . '</a>';
+			$breadCrumbItems[] = '<a href="#" onclick="return filebrowser_open_path(\'' . $resourceCollection . '\', \'' . md5($pathPart) . '\', true)">' . $pathPart . '</a>';
 		}
 
 		return implode('<span class="pathSeparator">&gt;</span>', $breadCrumbItems);
