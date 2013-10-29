@@ -61,6 +61,15 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 
 		// get all file browsers the current user has permissions to use
 		$filebrowsers = $this->filebrowserRepository->get_filebrowsers();
+
+        // only query files that the user has access to
+        $filebrowserUuids = array();
+        foreach ($filebrowsers as $filebrowser) {
+            $filebrowserUuids[] = $filebrowser->getId();
+            $filebrowserNames[$filebrowser->getId()] = $filebrowser->getName();
+        }
+
+
 		$this->view->assign('filebrowsers', $filebrowsers);
 
 		// get all media types
@@ -110,11 +119,19 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 							} else {
 								$filterValues .= ' OR ' . $filterType[$i];
 							}
+                            // register requested filebrowser filters
+                            if ($key == 'resourceCollection') $requestFilebrowsers[] = $filebrowserNames[$filterType[$i]];
 						}
 						$query->addFilterQuery($key . ':(' . $filterValues . ')');
 					}
 				}
+
+
+
+
 			}
+
+
 
 			// documentType filter
 			if (is_array($requestArguments['documentType']) && !empty($requestArguments['documentType'])) {
@@ -129,11 +146,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 				$query->addFilterQuery('fileExtension:(' . $filterValues . ')');
 			}
 
-			// only query files that the user has access to
-			$filebrowserUuids = array();
-			foreach ($filebrowsers as $filebrowser) {
-				$filebrowserUuids[] = $filebrowser->getId();
-			}
+
 			if (is_array($filebrowserUuids)) {
 				$query->addFilterQuery('resourceCollection:(' . implode(' OR ', $filebrowserUuids) . ')');
 			}
@@ -187,6 +200,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 			$lastDocument = $lastCalculatedDocument <= $response->response->numFound ? $lastCalculatedDocument : $response->response->numFound;
 			$this->view->assign('lastDocumentIndex', $lastDocument);
 			$this->view->assign('requestArguments', $requestArguments);
+            $this->view->assign('requestFilebrowsers',$requestFilebrowsers);
 		}
 
 	}

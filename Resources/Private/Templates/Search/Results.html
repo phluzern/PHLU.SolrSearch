@@ -1,9 +1,9 @@
 {namespace phlu=PHLU\SolrSearch\ViewHelpers}
-
 <f:layout name="Html" />
 <f:section name="Content">
+    <div id="searchResultsCount" class="hide fade">{numberOfDocuments}</div>
 	<div class="row-fluid">
-        <div class="span8">
+        <div class="span7">
             <h3>Suchresultate</h3>
         </div>
     </div>
@@ -11,7 +11,8 @@
      <div class="span-12">
         <f:if condition="{solrDocs}">
             <f:then>
-                <p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten.</p>
+                <p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten<f:if condition="{requestFilebrowsers}"> in <f:for each="{requestFilebrowsers}" as="requestFilebrowser" iteration="requestFilebrowserIterator">
+                    {f:if(condition: requestFilebrowserIterator.isFirst, then: '', else: ',')} {requestFilebrowser}</f:for></f:if>.</p>
                 <ul class="listview iconic">
                 <f:for each="{solrDocs}" as="solrDoc">
                     <f:if condition="{solrDoc.url}">
@@ -25,7 +26,6 @@
                             </li>
                         </f:then>
                         <f:else>
-
                             <li data-score="{solrDoc.score}" class="row-fluid" data-file="{solrDoc.uuid}">
                                 <div class="row-fluid">
                                     <div class="span12">
@@ -53,12 +53,16 @@
         </f:if>
      </div>
     </div>
-	<div id="searchResultsPager">
-		<f:if condition="{offset} != 0">
-			<f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, previousPage:offset}">« zurück</f:link.action>
-		</f:if>
-		<f:if condition="{calculatedMaximumItem} <= {numberOfDocuments}">
-			<f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, nextPage:offset}">weiter »</f:link.action>
-		</f:if>
-	</div>
+    <div class="row-fluid">
+        <div class="span12">
+                <div class="searchResultsPager pull-right">
+                    <f:if condition="{offset} != 0">
+                        <f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, previousPage:offset}">« zurück</f:link.action>
+                    </f:if>
+                    <f:if condition="{calculatedMaximumItem} <= {numberOfDocuments}">
+                        <f:link.action class="searchResultsNavigate" action="results" arguments="{query:requestArguments.query, documentType:requestArguments.documentType, filter:requestArguments.filter, nextPage:offset}">weiter »</f:link.action>
+                    </f:if>
+                </div>
+            </div>
+        </div>
 </f:section>
