@@ -35,7 +35,7 @@
                                         <div class="data">
                                             <h4 class="action-download">{solrDoc.title}</h4>
                                             <p class="searchResult-content"><phlu:solrHighlight documentId="{solrDoc.id}" highlightObjects="{hl}" field="content" /></p>
-                                            <p class="action-download small file-date">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p>
+                                            <f:if condition="{solrDoc.changed}"><p class="action-download small file-date">Zuletzt geändert: <f:format.date format="d.m.Y">{solrDoc.changed}</f:format.date></p></f:if>
                                             <p class="searchResult-crumbPath small"><f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
                                         </div>
                                     </div>
