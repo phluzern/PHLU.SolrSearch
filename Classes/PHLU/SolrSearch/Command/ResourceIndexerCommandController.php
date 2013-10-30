@@ -359,13 +359,16 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		$pathParts = explode('/', $path);
 		// we don't need the first part because it is the identifier of the resourceCollection
 		//unset($pathParts[0]);
+        $breadCrumbItems = array();
+        $absolutePath = "";
+        foreach ($pathParts as $pathPart) {
+            if ($absolutePath == "") {} else {$absolutePath .= "/";}
+            $absolutePath .= $pathPart;
+            $breadCrumbItems[] = '<a href="#" onclick="return filebrowser_open_path(\'' . $resourceCollection . '\', \'' . md5($absolutePath) . '\',true)">' . $pathPart . '</a>';
+        }
 
-		$breadCrumbItems = array();
-		foreach ($pathParts as $pathPart) {
-			$breadCrumbItems[] = '<a href="#" onclick="return filebrowser_open_path(\'' . $resourceCollection . '\', \'' . md5($pathPart) . '\', true)">' . $pathPart . '</a>';
-		}
+        return implode('<span class="pathSeparator">&gt;</span>', $breadCrumbItems);
 
-		return implode('<span class="pathSeparator">&gt;</span>', $breadCrumbItems);
 	}
 
 }
