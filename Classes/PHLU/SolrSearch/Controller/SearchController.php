@@ -69,6 +69,8 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
             $filebrowserNames[$filebrowser->getId()] = $filebrowser->getName();
         }
 
+		// the names of the requested filebrowsers
+		$requestFilebrowsers = array();
 
 		$this->view->assign('filebrowsers', $filebrowsers);
 
@@ -132,7 +134,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 
 
 			// documentType filter
-			if (is_array($requestArguments['documentType']) && !empty($requestArguments['documentType'])) {
+			if ($this->request->hasArgument('documentType') && !empty($requestArguments['documentType'])) {
 				$filterValues = array();
 				foreach ($requestArguments['documentType'] as $documentType) {
 					$fileExtensionArray = $this->settings['documentTypes'][$documentType]['fileExtensions'];
@@ -198,7 +200,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 			$lastDocument = $lastCalculatedDocument <= $response->response->numFound ? $lastCalculatedDocument : $response->response->numFound;
 			$this->view->assign('lastDocumentIndex', $lastDocument);
 			$this->view->assign('requestArguments', $requestArguments);
-            $this->view->assign('requestFilebrowsers',$requestFilebrowsers);
+            $this->view->assign('requestFilebrowsers', $requestFilebrowsers);
 		}
 
 	}
