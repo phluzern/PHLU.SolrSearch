@@ -249,8 +249,8 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		if ($resource->getExternalresource() === NULL) {
 			// this is a "normal" document that is present on the server
 
-			if (!is_string($resource->getResource()->getFilename())) {
-				// early return if the file name is empty
+			if (!is_object($resource->getResource()) || (is_object($resource->getResource() && !is_string($resource->getResource()->getFilename())))) {
+				// early return if the resource doesn't exist or the file name is empty
 				$this->outputLine('Nicht zum Index hinzugefügt da Dateiname leer');
 				return FALSE;
 			}
