@@ -241,9 +241,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		//		$document->addField('creator', $resource->getMetadata()->getCreator());
 
 
-		/** @var \PHLU\Portal\Domain\Model\Filebrowser $filebrowser */
-		$filebrowser = $this->filebrowserRepository->getFilebrowserByFileNoAccessCheck($resource)->getFirst();
-		$document->addField('resourceCollection', $filebrowser->getId());
+		$document->addField('resourceCollection', $resource->getOriginal_filebrowser());
 
 		// fields specific to the type of the file (virtual or non-virtual)
 		if ($resource->getExternalresource() === NULL) {
