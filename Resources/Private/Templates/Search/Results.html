@@ -11,7 +11,7 @@
      <div class="span-12">
         <f:if condition="{solrDocs}">
             <f:then>
-                <p class="searchResults-info">Zeige Resultat {firstDocumentIndex} von {lastDocumentIndex} von ingesamt {numberOfDocuments} Resultaten<f:if condition="{requestFilebrowsers}"> in <f:for each="{requestFilebrowsers}" as="requestFilebrowser" iteration="requestFilebrowserIterator">
+                <p class="searchResults-info">Zeige Resultat {firstDocumentIndex} bis {lastDocumentIndex} von insgesamt {numberOfDocuments} Resultaten<f:if condition="{requestFilebrowsers}"> in <f:for each="{requestFilebrowsers}" as="requestFilebrowser" iteration="requestFilebrowserIterator">
                     {f:if(condition: requestFilebrowserIterator.isFirst, then: '', else: ',')} {requestFilebrowser}</f:for></f:if>.</p>
                 <ul class="listview iconic">
                 <f:for each="{solrDocs}" as="solrDoc">
