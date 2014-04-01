@@ -41,6 +41,24 @@ class IndexQueueRepository extends Repository {
 	}
 
 	/**
+	 * Update items in the index
+	 *
+	 * Because we're handling with a very big number of files, we use native SQL here
+	 *
+	 * @param string $setClause set clause for update query
+	 * @param string $whereClause where clause for update query
+	 */
+	public function updateIndexItems($table, $setClause, $whereClause) {
+
+		$sql = 'UPDATE phlu_solrsearch_domain_model_indexqueue ' . $setClause . ' ' . $whereClause;
+
+		/** @var $sqlConnection \Doctrine\DBAL\Connection */
+		$sqlConnection = $this->entityManager->getConnection();
+		$sqlConnection->executeUpdate($sql);
+
+	}
+
+	/**
 	 * Find a number of files of a certain resourceModel
 	 *
 	 * @param $limit

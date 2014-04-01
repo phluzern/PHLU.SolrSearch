@@ -76,9 +76,6 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 * summary about what the command does. Then, after an empty line, you should explain in more detail what the command
 	 * does. You might also give some usage example.
 	 *
-	 * It is important to document the parameters with param tags, because that information will also appear in the help
-	 * screen.
-	 *
 	 * @return void
 	 */
 	public function putAllResourcesToQueueCommand() {
@@ -86,6 +83,30 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		$whereClause = "WHERE path IS NOT NULL AND (resource IS NOT NULL OR externalresource IS NOT NULL)";
 		$this->indexQueueRepository->putResourcesToQueue($table, $whereClause);
 		$this->outputLine('Alle Resourcen, die noch nicht in der Index-Queue sind, wurden in die Index-Queue gestellt.');
+	}
+
+	/**
+	 * Queues all items for reindexing (without emptying the index first)
+	 *
+	 * The comment of this command method is also used for TYPO3 Flow's help screens. The first line should give a very short
+	 * summary about what the command does. Then, after an empty line, you should explain in more detail what the command
+	 * does. You might also give some usage example.
+	 *
+	 * @param boolean $onlyErrors Only queue reindexing for items that have errors
+	 * @return void
+	 */
+	public function queueReindexingCommand($onlyErrors = FALSE) {
+		$table = 'phlu_portal_domain_model_file';
+		if ($onlyErrors) {
+			$setClause = 'SET error=NULL, indexed=NULL';
+			$whereClause = 'WHERE error IS NOT NULL AND deleted IS NULL';
+		} else {
+			$setClause = 'SET error=NULL, indexed=NULL';
+			$whereClause = 'WHERE deleted IS NULL';
+		}
+
+		$this->indexQueueRepository->updateIndexItems($table, $setClause, $whereClause);
+		$this->outputLine('Reindexierung wurde geplant. Die Resourcen werden nun mit dem queueWorker neu indexiert.');
 	}
 
 	/**
