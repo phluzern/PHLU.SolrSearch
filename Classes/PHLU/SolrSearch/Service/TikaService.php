@@ -22,7 +22,7 @@ class TikaService {
 	 */
 	public function extractText($inputFile, $tikaSettings) {
 
-		$tikaCommand = 'java -Dfile.encoding=UTF8 -jar \'' . $tikaSettings['path'] . '\' -t ' . escapeshellarg($inputFile);
+		$tikaCommand = 'LC_ALL=de_CH.UTF-8 java -Dfile.encoding=UTF8 -jar \'' . $tikaSettings['path'] . '\' -t ' . escapeshellarg($inputFile);
 		$shellOutput = shell_exec($tikaCommand);
 
 		// TODO Logging actions
@@ -44,7 +44,7 @@ class TikaService {
 	 */
 	public function extractMetadata($inputFile, $tikaSettings) {
 
-		$tikaCommand = 'java -Dfile.encoding=UTF8 -jar \'' . $tikaSettings['path'] . '\' -m ' . escapeshellarg($inputFile);
+		$tikaCommand = 'LC_ALL=de_CH.UTF-8 java -Dfile.encoding=UTF8 -jar \'' . $tikaSettings['path'] . '\' -m ' . escapeshellarg($inputFile);
 
 		$shellOutput = array();
 		exec($tikaCommand, $shellOutput);
