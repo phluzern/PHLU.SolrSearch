@@ -13,6 +13,15 @@ use TYPO3\Flow\Annotations as Flow;
  */
 class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController {
 
+	const ERROR_NOFILENAME = 1;
+	const ERROR_NORESOURCE = 2;
+	const ERROR_FILENOTFOUND = 3;
+	const ERROR_EXTERNALRESOURCENOTFILE = 4;
+	const ERROR_RESOURCENOTFOUND = 5;
+	const ERROR_INVALIDSOLRDOCUMENT = 6;
+	const ERROR_ONADDINGTOSOLR = 7;
+	const ERROR_FILEOBJECTNOTFOUND = 8;
+
 	/**
 	 * @var array
 	 */
@@ -128,14 +137,16 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 			foreach ($jobs as $job) {
 				$resource = $this->fileRepository->findByIdentifier($job->getResource());
 				if (is_object($resource)) {
-					$success = $this->addResourceToIndex($resource, $table);
-					if ($success) {
+					$trueOrErrorCode = $this->addResourceToIndex($resource, $table);
+					if ($trueOrErrorCode === TRUE) {
 						$job->setIndexed(new \TYPO3\Flow\Utility\Now);
 					} else {
 						$job->setError(new \TYPO3\Flow\Utility\Now);
+						$job->setErrorCode($trueOrErrorCode);
 					}
 				} else {
 					$job->setError(new \TYPO3\Flow\Utility\Now);
+					$job->setErrorCode(ResourceIndexerCommandController::ERROR_FILEOBJECTNOTFOUND);
 					$this->outputLine('Fehler: Resource ' . $job->getResource() . ' nicht gefunden.');
 				}
 				$this->indexQueueRepository->update($job);
@@ -206,16 +217,17 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 * @param \PHLU\Portal\Domain\Model\File $resource
 	 * @param string $table
 	 *
-	 * @return boolean
+	 * @return boolean|integer
 	 */
 	public function addResourceToIndex($resource, $table) {
-		$solrDocument = $this->getSolrDocumentForResource($resource, $table);
+		$solrDocumentOrErrorCode = $this->getSolrDocumentForResource($resource, $table);
 
-		if ($solrDocument !== FALSE) {
+		if ($solrDocumentOrErrorCode instanceof \SolrInputDocument) {
 			try {
-				$updateResponse = $this->solrClient->addDocument($solrDocument);
+				$updateResponse = $this->solrClient->addDocument($solrDocumentOrErrorCode);
 			} catch (Exception $e) {
 				$this->outputLine('Dokument ungültig.');
+				return ResourceIndexerCommandController::ERROR_INVALIDSOLRDOCUMENT;
 			}
 
 			try {
@@ -224,8 +236,11 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 				return TRUE;
 			} catch (Exception $e) {
 				$this->outputLine('Fehler beim Hinzufügen: ' . $resource->getName());
-				return FALSE;
+				return ResourceIndexerCommandController::ERROR_ONADDINGTOSOLR;
 			}
+		} else {
+			// return the errorCode from the solrDocument
+			return $solrDocumentOrErrorCode;
 		}
 
 	}
@@ -235,7 +250,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 *
 	 * @param \PHLU\Portal\Domain\Model\File $resource
 	 * @param $table
-	 * @return bool|\SolrInputDocument
+	 * @return integer|\SolrInputDocument
 	 */
 	public function getSolrDocumentForResource(\PHLU\Portal\Domain\Model\File $resource, $table) {
 		$appKey = $this->settings['server']['appKey'];
@@ -251,7 +266,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 		if (!is_string($resource->getMetadata()->getName())) {
 			// we can't add a resource without file name to the index
 			$this->outputLine('Nicht zum Index hinzugefügt da Datei keinen Namen hat: ' . $resource->getId());
-			return FALSE;
+			return ResourceIndexerCommandController::ERROR_NOFILENAME;
 		}
 		$document->addField('title', $resource->getMetadata()->getName());
 		$document->addField('fileRelativePath', $resource->getPath());
@@ -270,8 +285,8 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 
 			if (!is_object($resource->getResource()) || (is_object($resource->getResource() && !is_string($resource->getResource()->getFilename())))) {
 				// early return if the resource doesn't exist or the file name is empty
-				$this->outputLine('Nicht zum Index hinzugefügt da Dateiname leer');
-				return FALSE;
+				$this->outputLine('Nicht zum Index hinzugefügt da keine Resource oder Dateiname der Resource leer');
+				return ResourceIndexerCommandController::ERROR_NORESOURCE;
 			}
 
 			$document->addField('fileName', $resource->getResource()->getFilename());
@@ -308,14 +323,14 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 			} else {
 				// early return if the file doesn't exist
 				$this->outputLine('Nicht zum Index hinzugefügt da Datei nicht gefunden: ' . $resourceStreamPointer);
-				return FALSE;
+				return ResourceIndexerCommandController::ERROR_FILENOTFOUND;
 			}
 		} else {
 			// we have a virtual Moodle document that is only linked
 			if ($resource->getExternalresource() === 'https://moodle.phlu.ch') {
 				// if it is no file in Moodle, quit
 				$this->outputLine('Nicht zum Index hinzugefügt da externalresource nicht auf eine Datei zeigt: ' . $resource->getName());
-				return FALSE;
+				return ResourceIndexerCommandController::ERROR_EXTERNALRESOURCENOTFILE;
 			}
 			$document->addField('url', $resource->getExternalresource());
 

@@ -44,6 +44,13 @@ class IndexQueue {
 	protected $error;
 
 	/**
+	 * Reason of the error
+	 * @var integer
+	 * @ORM\Column(nullable=true)
+	 */
+	protected $errorCode;
+
+	/**
 	 * @return string
 	 */
 	public function getResourceModel() {
@@ -116,6 +123,20 @@ class IndexQueue {
 	 */
 	public function setError($error) {
 		$this->error = $error;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getErrorCode() {
+		return $this->errorCode;
+	}
+
+	/**
+	 * @param int $errorCode
+	 */
+	public function setErrorCode($errorCode) {
+		$this->errorCode = $errorCode;
 	}
 
 }
