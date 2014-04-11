@@ -26,6 +26,12 @@ class IndexQueue {
 	protected $resource;
 
 	/**
+	 * @var string
+	 * @ORM\Column(type="string", nullable=true)
+	 */
+	protected $fileBrowser;
+
+	/**
 	 * @var \DateTime
 	 * @ORM\Column(type="datetime", nullable=true)
 	 */

@@ -17,10 +17,9 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	const ERROR_NORESOURCE = 2;
 	const ERROR_FILENOTFOUND = 3;
 	const ERROR_EXTERNALRESOURCENOTFILE = 4;
-	const ERROR_RESOURCENOTFOUND = 5;
-	const ERROR_INVALIDSOLRDOCUMENT = 6;
-	const ERROR_ONADDINGTOSOLR = 7;
-	const ERROR_FILEOBJECTNOTFOUND = 8;
+	const ERROR_INVALIDSOLRDOCUMENT = 5;
+	const ERROR_ONADDINGTOSOLR = 6;
+	const ERROR_FILEOBJECTNOTFOUND = 7;
 
 	/**
 	 * @var array
@@ -50,16 +49,16 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	protected $fileRepository;
 
 	/**
-	 * @var \PHLU\Portal\Domain\Repository\FileconnectorRepository
-	 * @Flow\Inject
-	 */
-	protected $fileConnectorRepository;
-
-	/**
 	 * @var \PHLU\Portal\Domain\Repository\FilebrowserRepository
 	 * @Flow\Inject
 	 */
 	protected $filebrowserRepository;
+
+	/**
+	 * @var \PHLU\Portal\Domain\Repository\FileconnectorRepository
+	 * @Flow\Inject
+	 */
+	protected $fileConnectorRepository;
 
 	/**
 	 * @var \PHLU\SolrSearch\Service\SolrService
@@ -123,17 +122,43 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	 *
 	 * Takes the indicated number of items to be indexed from the queue and adds them to the search index.
 	 *
+	 * @param string $fileBrowser
 	 * @param integer $filesPerRun number of files being indexed in one run
 	 * @return void
 	 */
-	public function queueWorkerCommand($filesPerRun = 20) {
+	public function queueWorkerCommand($fileBrowser = 'all', $filesPerRun = 20) {
 		$table = 'phlu_portal_domain_model_file';
 		$this->solrClient = $this->solrService->getSolrClient($this->settings['server']);
 
 		// we proceed if the Solr server is reachable
 		if (is_object($this->solrClient->ping())) {
 
-			$jobs = $this->indexQueueRepository->findItemsToIndex($filesPerRun, $table);
+			// search the fileBrowser requested for indexing
+			if ($fileBrowser !== 'all') {
+				if ($fileBrowser === 'notmoodle') {
+					// get all fileBrowsers that are not for Moodle and return their UUIDs as array
+					$queryResult = $this->filebrowserRepository->get_filebrowser_all_but_not_moodleid();
+					$foundFileBrowsers = array();
+					foreach ($queryResult as $fileBrowser) {
+						$foundFileBrowsers[] = $fileBrowser->getId();
+					}
+				} else {
+					// get the requested fileBrowser and return its UUID in an array
+					$queryResult = array($this->filebrowserRepository->findByIdentifier($fileBrowser));
+					$foundFileBrowsers = array();
+					foreach ($queryResult as $fileBrowser) {
+						$foundFileBrowsers[] = $fileBrowser->getId();
+					}
+
+				}
+				if (count($foundFileBrowsers)) {
+					$fileBrowsers = $foundFileBrowsers;
+				}
+			} else {
+				$fileBrowsers = NULL;
+			}
+
+			$jobs = $this->indexQueueRepository->findItemsToIndex($filesPerRun, $table, $fileBrowsers);
 			foreach ($jobs as $job) {
 				$resource = $this->fileRepository->findByIdentifier($job->getResource());
 				if (is_object($resource)) {

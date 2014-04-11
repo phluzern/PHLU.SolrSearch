@@ -30,8 +30,8 @@ class IndexQueueRepository extends Repository {
 	 */
 	public function putResourcesToQueue($table, $whereClause) {
 
-		$sql = 'INSERT IGNORE INTO phlu_solrsearch_domain_model_indexqueue (persistence_object_identifier, resourceModel, resource)
-			SELECT uuid(), \'' . $table . '\', source.persistence_object_identifier FROM ' . $table . ' AS source ' .
+		$sql = 'INSERT IGNORE INTO phlu_solrsearch_domain_model_indexqueue (persistence_object_identifier, resourcemodel, resource, filebrowser)
+			SELECT uuid(), \'' . $table . '\', source.persistence_object_identifier, source.original_filebrowser FROM ' . $table . ' AS source ' .
 			$whereClause;
 
 		/** @var $sqlConnection \Doctrine\DBAL\Connection */
@@ -45,12 +45,13 @@ class IndexQueueRepository extends Repository {
 	 *
 	 * Because we're handling with a very big number of files, we use native SQL here
 	 *
+	 * @param $table
 	 * @param string $setClause set clause for update query
 	 * @param string $whereClause where clause for update query
 	 */
 	public function updateIndexItems($table, $setClause, $whereClause) {
 
-		$sql = 'UPDATE phlu_solrsearch_domain_model_indexqueue ' . $setClause . ' ' . $whereClause;
+		$sql = 'UPDATE phlu_solrsearch_domain_model_indexqueue ' . $setClause . ' ' . $whereClause . ' AND resourcemodel = \'' . $table . '\'';
 
 		/** @var $sqlConnection \Doctrine\DBAL\Connection */
 		$sqlConnection = $this->entityManager->getConnection();
@@ -63,17 +64,26 @@ class IndexQueueRepository extends Repository {
 	 *
 	 * @param $limit
 	 * @param $table
+	 * @param array $fileBrowsers
 	 * @return \TYPO3\Flow\Persistence\QueryResultInterface
 	 */
-	public function findItemsToIndex($limit, $table) {
+	public function findItemsToIndex($limit, $table, $fileBrowsers = NULL) {
 
 		$query = $this->createQuery();
+
+		$queryConstraints = array();
+		$queryConstraints[] = $query->equals('indexed', NULL);
+		$queryConstraints[] = $query->equals('deleted', NULL);
+		$queryConstraints[] = $query->equals('error', NULL);
+		$queryConstraints[] = $query->equals('resourceModel', $table);
+		if ($fileBrowsers) {
+			// if specific fileBrowsers are requested, add constraint
+			$queryConstraints[] = $query->in('fileBrowser', $fileBrowsers);
+		}
+
 		$query->matching(
 			$query->logicalAnd(
-				$query->equals('indexed', NULL),
-				$query->equals('deleted', NULL),
-				$query->equals('error', NULL),
-				$query->equals('resourceModel', $table)
+				$queryConstraints
 			)
 		);
 		$query->setLimit($limit);
