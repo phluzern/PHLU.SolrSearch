@@ -102,7 +102,7 @@ class SearchController extends \TYPO3\Flow\Mvc\Controller\ActionController {
 			$query->setRows($this->settings['results']['resultsPerPage']);
 
 			/* search based on query string */
-			$queryString = !empty($requestArguments['query']) ? self::sanitizeTerm($requestArguments['query']) : '*:*';
+			$queryString = !empty($requestArguments['query']) ? '*' . self::sanitizeTerm($requestArguments['query']) . '*': '*:*';
 			// general query settings
 			$query->setQuery($queryString);
 
