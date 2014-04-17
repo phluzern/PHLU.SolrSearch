@@ -222,7 +222,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 			$filesToDelete = $this->indexQueueRepository->findItemsToDelete();
 
 			foreach ($filesToDelete as $fileToDelete) {
-				$appKey = 'PHLU.SolrSearch';
+				$appKey = $this->settings['server']['appKey'];
 				// example: PHLU.SolrSearch/phlu_portal_domain_model_file/00024887-63FF-F56F-3961-9F434A3E3CB6
 				$fileId = $appKey . '/' . $fileToDelete->getResourceModel() . '/' . $fileToDelete->getResource();
 				$this->solrClient->deleteByQuery('id:' . $fileId);
