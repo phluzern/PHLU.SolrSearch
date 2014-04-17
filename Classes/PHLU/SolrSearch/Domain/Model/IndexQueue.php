@@ -145,5 +145,19 @@ class IndexQueue {
 		$this->errorCode = $errorCode;
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getFileBrowser() {
+		return $this->fileBrowser;
+	}
+
+	/**
+	 * @param string $fileBrowser
+	 */
+	public function setFileBrowser($fileBrowser) {
+		$this->fileBrowser = $fileBrowser;
+	}
+
 }
 ?>

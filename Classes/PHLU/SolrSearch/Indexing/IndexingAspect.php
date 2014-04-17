@@ -64,7 +64,7 @@ class IndexingAspect {
 		$indexQueueItem = new \PHLU\SolrSearch\Domain\Model\IndexQueue;
 		$indexQueueItem->setResourceModel($table);
 		$indexQueueItem->setResource($file->getId());
-
+		$indexQueueItem->setFileBrowser($file->getOriginal_filebrowser());
 		$this->indexQueueRepository->add($indexQueueItem);
 
 	}
