@@ -16,15 +16,21 @@
                     <f:if condition="{solrDoc.url}">
                         <f:then>
                             <li data-score="{solrDoc.score}" class="row-fluid">
-                                <div class="span2 icon icon-{solrDoc.fileExtension}"></div>
-                                <div class="span9">
-                                    <p class="searchResult-title"><f:link.external uri="{solrDoc.url}" target="_blank">{solrDoc.title}</f:link.external></p>
-                                    <p class="searchResult-crumbPath">Gefunden in <f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
-                                </div>
+								<div class="row-fluid">
+									<div class="span12">
+										<div class="icon">
+											<div class="span2 icon icon-{solrDoc.fileExtension}"></div>
+										</div>
+										<div class="data">
+											<h4><f:link.external uri="{solrDoc.url}" target="_blank">{solrDoc.title}</f:link.external></h4>
+											<p class="searchResult-crumbPath small"><f:format.raw>{solrDoc.breadcrumb}</f:format.raw></p>
+										</div>
+									</div>
+								</div>
                             </li>
                         </f:then>
                         <f:else>
-                            <li data-score="{solrDoc.score}" class="row-fluid" data-file="{solrDoc.uuid}">
+                            <li data-score="{solrDoc.score}" class="resource-download row-fluid" data-file="{solrDoc.uuid}">
                                 <div class="row-fluid">
                                     <div class="span12">
                                         <div class="icon">
