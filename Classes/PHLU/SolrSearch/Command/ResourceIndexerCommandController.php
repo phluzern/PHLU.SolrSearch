@@ -7,6 +7,7 @@ namespace PHLU\SolrSearch\Command;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Now;
 
 /**
  * @Flow\Scope("singleton")
@@ -16,7 +17,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 	const ERROR_NOFILENAME = 1;
 	const ERROR_NORESOURCE = 2;
 	const ERROR_FILENOTFOUND = 3;
-	const ERROR_EXTERNALRESOURCENOTFILE = 4;
+	const NOTICE_EXTERNALRESOURCENOTFILE = 4;
 	const ERROR_INVALIDSOLRDOCUMENT = 5;
 	const ERROR_ONADDINGTOSOLR = 6;
 	const ERROR_FILEOBJECTNOTFOUND = 7;
@@ -140,6 +141,14 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 					$queryResult = $this->filebrowserRepository->get_filebrowser_all_but_not_moodleid();
 					$foundFileBrowsers = array();
 					foreach ($queryResult as $fileBrowser) {
+						/** @var $fileBrowser \PHLU\Portal\Domain\Model\Filebrowser */
+						$foundFileBrowsers[] = $fileBrowser->getId();
+					}
+				} elseif ($fileBrowser === 'moodleonly') {
+					$queryResult = $this->filebrowserRepository->findMoodleFilebrowsers();
+					$foundFileBrowsers = array();
+					foreach ($queryResult as $fileBrowser) {
+						/** @var $fileBrowser \PHLU\Portal\Domain\Model\Filebrowser */
 						$foundFileBrowsers[] = $fileBrowser->getId();
 					}
 				} else {
@@ -147,9 +156,9 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 					$queryResult = array($this->filebrowserRepository->findByIdentifier($fileBrowser));
 					$foundFileBrowsers = array();
 					foreach ($queryResult as $fileBrowser) {
+						/** @var $fileBrowser \PHLU\Portal\Domain\Model\Filebrowser */
 						$foundFileBrowsers[] = $fileBrowser->getId();
 					}
-
 				}
 				if (count($foundFileBrowsers)) {
 					$fileBrowsers = $foundFileBrowsers;
@@ -160,17 +169,21 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 
 			$jobs = $this->indexQueueRepository->findItemsToIndex($filesPerRun, $table, $fileBrowsers);
 			foreach ($jobs as $job) {
+				/** @var $job \PHLU\SolrSearch\Domain\Model\IndexQueue */
 				$resource = $this->fileRepository->findByIdentifier($job->getResource());
 				if (is_object($resource)) {
 					$trueOrErrorCode = $this->addResourceToIndex($resource, $table);
 					if ($trueOrErrorCode === TRUE) {
-						$job->setIndexed(new \TYPO3\Flow\Utility\Now);
+						$job->setIndexed(new Now);
+					} elseif ($trueOrErrorCode === ResourceIndexerCommandController::NOTICE_EXTERNALRESOURCENOTFILE) {
+						// this is not a real error, but a notice that the resource is a folder, not a file. therefore we ignore it
+						$job->setIgnored(new Now);
 					} else {
-						$job->setError(new \TYPO3\Flow\Utility\Now);
+						$job->setError(new Now);
 						$job->setErrorCode($trueOrErrorCode);
 					}
 				} else {
-					$job->setError(new \TYPO3\Flow\Utility\Now);
+					$job->setError(new Now);
 					$job->setErrorCode(ResourceIndexerCommandController::ERROR_FILEOBJECTNOTFOUND);
 					$this->outputLine('Fehler: Resource ' . $job->getResource() . ' nicht gefunden.');
 				}
@@ -355,7 +368,7 @@ class ResourceIndexerCommandController extends \TYPO3\Flow\Cli\CommandController
 			if ($resource->getExternalresource() === 'https://moodle.phlu.ch') {
 				// if it is no file in Moodle, quit
 				$this->outputLine('Nicht zum Index hinzugefügt da externalresource nicht auf eine Datei zeigt: ' . $resource->getName());
-				return ResourceIndexerCommandController::ERROR_EXTERNALRESOURCENOTFILE;
+				return ResourceIndexerCommandController::NOTICE_EXTERNALRESOURCENOTFILE;
 			}
 			$document->addField('url', $resource->getExternalresource());
 

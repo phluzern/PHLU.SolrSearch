@@ -74,6 +74,7 @@ class IndexQueueRepository extends Repository {
 		$queryConstraints = array();
 		$queryConstraints[] = $query->equals('indexed', NULL);
 		$queryConstraints[] = $query->equals('deleted', NULL);
+		$queryConstraints[] = $query->equals('ignored', NULL);
 		$queryConstraints[] = $query->equals('error', NULL);
 		$queryConstraints[] = $query->equals('resourceModel', $table);
 		if ($fileBrowsers) {

@@ -50,6 +50,12 @@ class IndexQueue {
 	protected $error;
 
 	/**
+	 * @var \DateTime
+	 * @ORM\Column(type="datetime", nullable=true)
+	 */
+	protected $ignored;
+
+	/**
 	 * Reason of the error
 	 * @var integer
 	 * @ORM\Column(nullable=true)
@@ -157,6 +163,20 @@ class IndexQueue {
 	 */
 	public function setFileBrowser($fileBrowser) {
 		$this->fileBrowser = $fileBrowser;
+	}
+
+	/**
+	 * @return \DateTime
+	 */
+	public function getIgnored() {
+		return $this->ignored;
+	}
+
+	/**
+	 * @param \DateTime $ignored
+	 */
+	public function setIgnored($ignored) {
+		$this->ignored = $ignored;
 	}
 
 }
