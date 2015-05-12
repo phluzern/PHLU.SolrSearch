@@ -1,0 +1,96 @@
+PHLU:
+  SolrSearch:
+    server:
+      scheme: 'http'
+      host: 'localhost'
+      port: '8080'
+      path: '/solr/flow/'
+    tika:
+      path: '/var/www/typo3.flow/Packages/Application/PHLU.SolrSearch/Resources/Tika/tika-app-1.4.jar'
+      resourcesPathRelativeFromFlowDataPath: 'Persistent/Resources/'
+    results:
+      resultsPerPage: 12
+      highlighting:
+        prefix: '<span class="searchResult-highlighted">'
+        suffix: '</span>'
+        fragmentSize: 200
+    documentTypes:
+      1:
+        speakingName: 'PDF'
+        fileExtensions:
+          - pdf
+      2:
+        speakingName: 'Word-Dokumente'
+        fileExtensions:
+          - doc
+          - docm
+          - docx
+          - rtf
+          - odt
+          - dotx
+          - dot
+          - dotm
+      3:
+        speakingName: 'Excel-Dokumente'
+        fileExtensions:
+          - xls
+          - xlsx
+          - xltx
+          - xlt
+          - xltm
+      4:
+        speakingName: 'Präsentationen'
+        fileExtensions:
+          - ppt
+          - pptx
+          - pptm
+          - pps
+          - ppsx
+          - potx
+          - potm
+      5:
+        speakingName: 'Vorlagen'
+        fileExtensions:
+          - dotx
+          - dot
+          - dotm
+          - xltx
+          - xlt
+          - xltm
+          - potx
+          - potm
+      6:
+        speakingName: 'Bilder'
+        fileExtensions:
+          - jpg
+          - jpeg
+          - bmp
+          - png
+          - tiff
+          - tif
+          - gif
+          - eps
+      7:
+        speakingName: 'Audio'
+        fileExtensions:
+          - mp3
+          - m4a
+          - wma
+          - f4a
+          - oga
+          - wav
+      8:
+         speakingName: 'Video'
+         fileExtensions:
+           - mov
+           - avi
+           - mpeg
+           - mpg
+           - mp4
+           - m4v
+           - flv
+           - f4v
+           - webm
+           - wmv
+           - ogv
+           - 3gp
