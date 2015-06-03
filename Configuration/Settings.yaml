@@ -2,9 +2,10 @@ PHLU:
   SolrSearch:
     server:
       scheme: 'http'
-      host: 'localhost'
+      host: '147.88.204.110'
       port: '8080'
       path: '/solr/flow/'
+      appKey: 'portal-prod'
     tika:
       path: '/var/www/typo3.flow/Packages/Application/PHLU.SolrSearch/Resources/Tika/tika-app-1.4.jar'
       resourcesPathRelativeFromFlowDataPath: 'Persistent/Resources/'
