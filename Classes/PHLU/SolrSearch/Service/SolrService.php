@@ -25,7 +25,7 @@ class SolrService {
 			'port' => $solrServerSettings['port'],
 			'path' => $solrServerSettings['path']
 		);
-
+return null;
 		return new \SolrClient($options);
 
 	}
